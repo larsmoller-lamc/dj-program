@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DJ-læringsprogram · DDJ-400</title>
+<style>
+  :root {
+    --cyan: #009DF0;
+    --ocean: #05326E;
+    --forest: #125A40;
+    --heath: #62294B;
+    --mountain: #273943;
+    --grass: #ADD095;
+    --pebble: #E3E1D8;
+    --field: #FF8855;
+    --sand: #FFE682;
+    --white: #ffffff;
+    --bg: #f5f4ef;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Nunito', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--mountain);
+    line-height: 1.5;
+    padding: 16px;
+    max-width: 900px;
+    margin: 0 auto;
+    padding-bottom: 80px;
+  }
+
+  header {
+    background: linear-gradient(135deg, var(--ocean) 0%, var(--cyan) 100%);
+    color: var(--white);
+    padding: 24px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  header h1 {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+  }
+
+  header p {
+    font-size: 14px;
+    opacity: 0.9;
+  }
+
+  .sync-status {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.15);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sync-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--sand);
+  }
+
+  .sync-dot.connected { background: var(--grass); }
+  .sync-dot.local { background: var(--field); }
+
+  .progress-bar-container {
+    background: rgba(255,255,255,0.2);
+    height: 8px;
+    border-radius: 4px;
+    margin-top: 14px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    background: var(--sand);
+    height: 100%;
+    width: 0%;
+    transition: width 0.4s ease;
+    border-radius: 4px;
+  }
+
+  .progress-text {
+    font-size: 12px;
+    margin-top: 6px;
+    opacity: 0.9;
+  }
+
+  .intro {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--cyan);
+  }
+
+  .intro h2 {
+    color: var(--ocean);
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .intro p {
+    font-size: 13px;
+    color: var(--mountain);
+  }
+
+  .intro ul {
+    font-size: 13px;
+    margin-top: 8px;
+    padding-left: 18px;
+  }
+
+  .intro li {
+    margin-bottom: 3px;
+  }
+
+  .week {
+    background: var(--white);
+    border-radius: 12px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  .week-header {
+    padding: 16px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--white);
+    transition: background 0.2s;
+    user-select: none;
+  }
+
+  .week-header:active { background: var(--pebble); }
+
+  .week-header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+  }
+
+  .week-number {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--white);
+    flex-shrink: 0;
+  }
+
+  .w1, .w2 { background: var(--field); }
+  .w3, .w4 { background: var(--cyan); }
+  .w5, .w6 { background: var(--forest); }
+  .w7, .w8 { background: var(--heath); }
+
+  .week-title { flex: 1; min-width: 0; }
+
+  .week-title h3 {
+    color: var(--ocean);
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 2px;
+    line-height: 1.3;
+  }
+
+  .week-title .subtitle {
+    font-size: 12px;
+    color: #666;
+  }
+
+  .week-progress {
+    font-size: 11px;
+    color: #888;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mini-bar {
+    background: var(--pebble);
+    height: 4px;
+    border-radius: 2px;
+    flex: 1;
+    max-width: 100px;
+    overflow: hidden;
+  }
+
+  .mini-bar-fill {
+    background: var(--grass);
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s;
+  }
+
+  .expand-icon {
+    color: var(--cyan);
+    font-size: 18px;
+    transition: transform 0.3s;
+    flex-shrink: 0;
+    margin-left: 8px;
+  }
+
+  .week.open .expand-icon { transform: rotate(180deg); }
+
+  .week-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+  }
+
+  .week.open .week-content { max-height: 5000px; }
+
+  .week-inner {
+    padding: 4px 20px 20px 20px;
+    border-top: 1px solid var(--pebble);
+  }
+
+  .goal {
+    background: var(--sand);
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin: 14px 0;
+    font-size: 13px;
+  }
+
+  .goal strong {
+    color: var(--ocean);
+    display: block;
+    margin-bottom: 3px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .day { margin-bottom: 14px; }
+
+  .day-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ocean);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .day-badge {
+    background: var(--ocean);
+    color: var(--white);
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-weight: 700;
+  }
+
+  .task {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 10px;
+    background: var(--bg);
+    border-radius: 6px;
+    margin-bottom: 5px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .task:active { background: var(--pebble); }
+
+  .task input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    accent-color: var(--cyan);
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .task-content {
+    flex: 1;
+    line-height: 1.4;
+  }
+
+  .task.done .task-label { text-decoration: line-through; opacity: 0.5; }
+
+  .video-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 0, 0, 0.08);
+    color: #c00;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 6px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .video-link:hover { background: rgba(255, 0, 0, 0.15); }
+
+  .video-link::before { content: "▶"; font-size: 8px; }
+
+  .tip {
+    background: rgba(0, 157, 240, 0.08);
+    border-left: 3px solid var(--cyan);
+    padding: 10px 12px;
+    border-radius: 6px;
+    margin-top: 12px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .tip strong {
+    color: var(--ocean);
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  .resources {
+    background: var(--pebble);
+    padding: 12px 14px;
+    border-radius: 8px;
+    margin-top: 12px;
+    font-size: 12px;
+  }
+
+  .resources strong {
+    color: var(--ocean);
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12px;
+  }
+
+  .resources ul { padding-left: 16px; }
+  .resources li { margin-bottom: 4px; }
+  .resources a { color: var(--cyan); text-decoration: none; }
+  .resources a:hover { text-decoration: underline; }
+
+  .stage-chip {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    margin-right: 5px;
+  }
+
+  .chip-basis { background: var(--sand); color: var(--mountain); }
+  .chip-teknik { background: var(--field); color: var(--white); }
+  .chip-flow { background: var(--cyan); color: var(--white); }
+  .chip-performance { background: var(--forest); color: var(--white); }
+
+  .final-section {
+    background: linear-gradient(135deg, var(--forest) 0%, var(--grass) 100%);
+    color: var(--white);
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 20px;
+    text-align: center;
+  }
+
+  .final-section h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+
+  .final-section p {
+    font-size: 13px;
+    opacity: 0.95;
+  }
+
+  .reset-btn {
+    background: rgba(255,255,255,0.2);
+    color: var(--white);
+    border: 1px solid rgba(255,255,255,0.4);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin-top: 12px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  @media (min-width: 700px) {
+    body { padding: 32px; }
+    header { padding: 32px; }
+    header h1 { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="sync-status" id="syncStatus">
+    <div class="sync-dot" id="syncDot"></div>
+    <span id="syncText">Starter op...</span>
+  </div>
+  <h1>🎧 DJ-læringsprogram</h1>
+  <p>Pioneer DDJ-400 · Rekordbox · 8 uger</p>
+  <div class="progress-bar-container">
+    <div class="progress-bar" id="mainProgress"></div>
+  </div>
+  <div class="progress-text" id="progressText">0 af 0 opgaver fuldført</div>
+</header>
+
+<div class="intro">
+  <h2>Før du starter</h2>
+  <p><strong>Setup:</strong> Rekordbox installeret på gammel bærbar PC (fungerer fint med DDJ-400 via USB). Log ind med din Spotify Premium — playlister synkroniseres automatisk ind i biblioteket.</p>
+  <ul>
+    <li>Spotify-tracks understøtter <em>ikke</em> optagelse eller stems — brug lokale filer når du vil optage</li>
+    <li>Hovedtelefoner er dit vigtigste værktøj i starten</li>
+    <li>Sæt 30-45 min af pr. session — kort og fokuseret slår langt og trættende</li>
+    <li>🔴 = link til YouTube-video der matcher opgaven</li>
+  </ul>
+</div>
+
+<!-- UGE 1 -->
+<div class="week">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <div class="week-header-left">
+      <div class="week-number w1">1</div>
+      <div class="week-title">
+        <h3><span class="stage-chip chip-basis">Basis</span>Kend din controller</h3>
+        <div class="subtitle">Setup, layout, første tracks</div>
+        <div class="week-progress">
+          <div class="mini-bar"><div class="mini-bar-fill" data-week="1"></div></div>
+          <span data-week-count="1">0/0</span>
+        </div>
+      </div>
+    </div>
+    <div class="expand-icon">▼</div>
+  </div>
+  <div class="week-content">
+    <div class="week-inner">
+      <div class="goal">
+        <strong>Ugens mål</strong>
+        Kende hver knap på DDJ-400, kunne loade tracks fra Spotify og lokalt bibliotek, og forstå signalflowet gennem controlleren.
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 1-2</span>Grundopsætning</div>
+        <div class="task" data-id="w1-d1-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Installer Rekordbox og forbind DDJ-400 via USB</span> <a class="video-link" href="https://www.youtube.com/watch?v=Y4dqD-g7SHE" target="_blank" rel="noopener">Phil Harris: DDJ-400 Beginner Guide</a></div></div>
+        <div class="task" data-id="w1-d1-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Log ind med Spotify Premium i Rekordbox → tjek at playlister vises</span></div></div>
+        <div class="task" data-id="w1-d1-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Test lyd: master ud og hovedtelefoner (cue). Justér gain, master og cue-volume</span></div></div>
+        <div class="task" data-id="w1-d1-t4"><input type="checkbox"><div class="task-content"><span class="task-label">Se Point Blank / DJ Ravine tutorial-serie (DDJ-400 basics)</span> <a class="video-link" href="https://www.youtube.com/playlist?list=PLnft41jZXnxLJSfzd8BGw45p8M7BSUbB1" target="_blank" rel="noopener">DDJ-400 playlist</a></div></div>
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 3-4</span>Layout og knapper</div>
+        <div class="task" data-id="w1-d2-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Identificer på begge decks: PLAY, CUE, LOAD, SYNC, tempo fader, jog wheel</span></div></div>
+        <div class="task" data-id="w1-d2-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Mixer-sektion: channel faders, EQ (HI/MID/LOW), crossfader, filter, cue-knapper</span></div></div>
+        <div class="task" data-id="w1-d2-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Prøv performance pads i alle 4 modes: HOT CUE, PAD FX 1, BEAT JUMP, SAMPLER</span></div></div>
+        <div class="task" data-id="w1-d2-t4"><input type="checkbox"><div class="task-content"><span class="task-label">Load 2 tracks på hvert deck og øv dig i at skifte mellem cue og master</span></div></div>
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 5-7</span>Første eksperimenter</div>
+        <div class="task" data-id="w1-d3-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Byg en øve-playliste i Spotify: 15-20 house/tech house tracks omkring 122-126 BPM</span></div></div>
+        <div class="task" data-id="w1-d3-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Sæt cue points på 4 forskellige tracks (typisk på første kick eller drop)</span></div></div>
+        <div class="task" data-id="w1-d3-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Prøv jog wheel: pitch bend (touch side) vs. scratch (touch top)</span></div></div>
+        <div class="task" data-id="w1-d3-t4"><input type="checkbox"><div class="task-content"><span class="task-label">Prøv at spille et helt track ud og starte det næste manuelt (uden mix)</span></div></div>
+      </div>
+
+      <div class="tip">
+        <strong>💡 Tip</strong>
+        Vær ikke bange for at røre alle knapper. Du kan ikke ødelægge noget. Første uge handler om at føle at controlleren er "din" — ikke om at lyde godt.
+      </div>
+
+      <div class="resources">
+        <strong>📺 Anbefalede kanaler</strong>
+        <ul>
+          <li><a href="https://www.youtube.com/@wearecrossfader" target="_blank" rel="noopener">Crossfader</a> — britisk DJ-skole, meget gode begynder-videoer</li>
+          <li><a href="https://www.youtube.com/@digitaldjtips" target="_blank" rel="noopener">Digital DJ Tips</a> — Phil Morse, dybt erfaren</li>
+          <li><a href="https://www.youtube.com/@PhilHarrisMusicOfficial" target="_blank" rel="noopener">Phil Harris Music</a> — struktureret og pædagogisk</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UGE 2 -->
+<div class="week">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <div class="week-header-left">
+      <div class="week-number w2">2</div>
+      <div class="week-title">
+        <h3><span class="stage-chip chip-basis">Basis</span>Musik-teori for DJs</h3>
+        <div class="subtitle">BPM, phrases, struktur i electronic music</div>
+        <div class="week-progress">
+          <div class="mini-bar"><div class="mini-bar-fill" data-week="2"></div></div>
+          <span data-week-count="2">0/0</span>
+        </div>
+      </div>
+    </div>
+    <div class="expand-icon">▼</div>
+  </div>
+  <div class="week-content">
+    <div class="week-inner">
+      <div class="goal">
+        <strong>Ugens mål</strong>
+        Kunne genkende bars og phrases i et track, forstå intro/outro-struktur, og vide hvad "the 1" er.
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 1-2</span>Bars, beats og phrases</div>
+        <div class="task" data-id="w2-d1-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Lær: 1 bar = 4 beats. Electronic music phraser typisk i 8, 16 eller 32 bars</span> <a class="video-link" href="https://www.youtube.com/results?search_query=phrasing+for+djs+beginners" target="_blank" rel="noopener">Søg: Phrasing for DJs</a></div></div>
+        <div class="task" data-id="w2-d1-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Tæl "1-2-3-4" med til et track og find hvor phraserne skifter (nyt element kommer ind)</span></div></div>
+        <div class="task" data-id="w2-d1-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Lyt til 3 tracks og find intro, breakdown, drop, outro</span></div></div>
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 3-4</span>Anatomien af et track</div>
+        <div class="task" data-id="w2-d2-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Marker downbeat ("the 1") med et cue point på 5 tracks</span></div></div>
+        <div class="task" data-id="w2-d2-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Prøv BEAT JUMP-pads: hop 4, 8, 16 bars frem/tilbage — føl hvordan phrases virker</span></div></div>
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 5-7</span>BPM og energi</div>
+        <div class="task" data-id="w2-d3-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Sorter din øve-playliste efter BPM (fra 120 op til 128)</span></div></div>
+        <div class="task" data-id="w2-d3-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Brug tempo fader: pitch et track ±6% op/ned og hør hvad der sker</span></div></div>
+        <div class="task" data-id="w2-d3-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Lær forskellen på keylock ON/OFF (tonehøjde bevares vs. ændres med tempo)</span></div></div>
+        <div class="task" data-id="w2-d3-t4"><input type="checkbox"><div class="task-content"><span class="task-label">Lyt aktivt til 3 professionelle DJ-mix på Mixcloud/SoundCloud — bemærk hvornår de skifter</span></div></div>
+      </div>
+
+      <div class="tip">
+        <strong>💡 Tip</strong>
+        Musik-teori for DJs handler ikke om noder, men om struktur. Hvis du kan tælle med og genkende hvornår "noget nyt sker", er du 80% i mål.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UGE 3 -->
+<div class="week">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <div class="week-header-left">
+      <div class="week-number w3">3</div>
+      <div class="week-title">
+        <h3><span class="stage-chip chip-teknik">Teknik</span>Beatmatching manuelt</h3>
+        <div class="subtitle">Den vigtigste færdighed — uden sync</div>
+        <div class="week-progress">
+          <div class="mini-bar"><div class="mini-bar-fill" data-week="3"></div></div>
+          <span data-week-count="3">0/0</span>
+        </div>
+      </div>
+    </div>
+    <div class="expand-icon">▼</div>
+  </div>
+  <div class="week-content">
+    <div class="week-inner">
+      <div class="goal">
+        <strong>Ugens mål</strong>
+        Kunne matche to tracks manuelt (uden SYNC) så de er i tempo <em>og</em> i fase. Dette er hjertet i DJ'ing.
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 1-2</span>Match BPM</div>
+        <div class="task" data-id="w3-d1-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Se video om at beatmatche uden sync</span> <a class="video-link" href="https://www.youtube.com/results?search_query=how+to+beatmatch+manually+DJ+tutorial" target="_blank" rel="noopener">Søg: beatmatch manually</a></div></div>
+        <div class="task" data-id="w3-d1-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Spil track A på master. Cue track B i hovedtelefoner (kun cue, ikke master)</span></div></div>
+        <div class="task" data-id="w3-d1-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Start B og justér tempo fader indtil BPM matcher A visuelt (Rekordbox viser BPM)</span></div></div>
+        <div class="task" data-id="w3-d1-t4"><input type="checkbox"><div class="task-content"><span class="task-label">Lyt: kicks skal ligge lige oven på hinanden — hvis de "flanger", er tempo ikke helt matched</span></div></div>
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 3-4</span>Match fase (nudge)</div>
+        <div class="task" data-id="w3-d2-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Når BPM er matched, brug jog wheel-siden (pitch bend) til at skubbe B frem eller tilbage</span></div></div>
+        <div class="task" data-id="w3-d2-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Lyt efter når kicks låser præcist på hinanden — det lyder som ét kick, ikke to</span></div></div>
+        <div class="task" data-id="w3-d2-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Øv 30 minutter i træk kun med beatmatching — samme to tracks igen og igen</span></div></div>
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 5-7</span>Konsolidér</div>
+        <div class="task" data-id="w3-d3-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Prøv beatmatching med 5 nye track-par — brug ikke SYNC</span></div></div>
+        <div class="task" data-id="w3-d3-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Test dig selv: kan du matche inden for 15 sekunder? Skriv tiden ned</span></div></div>
+        <div class="task" data-id="w3-d3-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Slut ugen af med en mini-session: 4 tracks mixet sammen, kun manuelt beatmatched</span></div></div>
+      </div>
+
+      <div class="tip">
+        <strong>💡 Tip</strong>
+        SYNC-knappen findes af en grund, men lær aldrig at være afhængig af den. Når du kan beatmatche i ørerne, er du en DJ — ikke en afspiller. Det er ubehageligt de første 5-10 timer, så bliver det pludselig nemt.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UGE 4 -->
+<div class="week">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <div class="week-header-left">
+      <div class="week-number w4">4</div>
+      <div class="week-title">
+        <h3><span class="stage-chip chip-teknik">Teknik</span>EQ-mixing og faser</h3>
+        <div class="subtitle">Bytte tracks uden at det lyder rodet</div>
+        <div class="week-progress">
+          <div class="mini-bar"><div class="mini-bar-fill" data-week="4"></div></div>
+          <span data-week-count="4">0/0</span>
+        </div>
+      </div>
+    </div>
+    <div class="expand-icon">▼</div>
+  </div>
+  <div class="week-content">
+    <div class="week-inner">
+      <div class="goal">
+        <strong>Ugens mål</strong>
+        Kunne mixe to tracks sammen med EQ (bas-swap) og time overgangen så den falder på en phrase-grænse.
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 1-2</span>Bas-swap</div>
+        <div class="task" data-id="w4-d1-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Se video om EQ-mixing og bas-swap</span> <a class="video-link" href="https://www.youtube.com/results?search_query=EQ+mixing+DJ+bass+swap+tutorial" target="_blank" rel="noopener">Søg: EQ mixing bass swap</a></div></div>
+        <div class="task" data-id="w4-d1-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Regel: to bas-frekvenser sammen = mudder. Skru altid bas ned på det <em>indgående</em> track før du bringer det ind</span></div></div>
+        <div class="task" data-id="w4-d1-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Øv: track A spiller. Beatmatch B. Skru LOW på B helt ned. Fade B ind med channel fader</span></div></div>
+        <div class="task" data-id="w4-d1-t4"><input type="checkbox"><div class="task-content"><span class="task-label">På overgangs-punktet: skru A's LOW ned samtidig med at du skruer B's LOW op</span></div></div>
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 3-4</span>Phrase-timing</div>
+        <div class="task" data-id="w4-d2-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Start altid mix ind på "the 1" af en ny phrase (typisk hver 16 eller 32 bars)</span></div></div>
+        <div class="task" data-id="w4-d2-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Brug intro og outro: mange elektroniske tracks har 32-bar intros lavet til DJ-mixing</span></div></div>
+        <div class="task" data-id="w4-d2-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Øv 5 fulde overgange hvor du både beatmatcher, EQ-swapper og timer på phrase</span></div></div>
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 5-7</span>Længere overgange</div>
+        <div class="task" data-id="w4-d3-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Prøv en 32-bars overgang (ca. 60 sekunder ved 128 BPM) — langsom og musikalsk</span></div></div>
+        <div class="task" data-id="w4-d3-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Prøv en 8-bars overgang — hurtigere, mere energisk</span></div></div>
+        <div class="task" data-id="w4-d3-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Optag en 15-min mini-sæt (kun lokale tracks — Spotify kan ikke optages)</span></div></div>
+        <div class="task" data-id="w4-d3-t4"><input type="checkbox"><div class="task-content"><span class="task-label">Lyt tilbage til optagelsen dagen efter — brutalt men effektivt</span></div></div>
+      </div>
+
+      <div class="tip">
+        <strong>💡 Tip</strong>
+        For at kunne optage dine sæt skal du have tracks lokalt. Køb dine 10-15 mest elskede tracks på Beatport eller Bandcamp — du bruger dem i uge 5-8.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UGE 5 -->
+<div class="week">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <div class="week-header-left">
+      <div class="week-number w5">5</div>
+      <div class="week-title">
+        <h3><span class="stage-chip chip-flow">Flow</span>Effekter og loops</h3>
+        <div class="subtitle">Beat FX, loops og pad-tricks</div>
+        <div class="week-progress">
+          <div class="mini-bar"><div class="mini-bar-fill" data-week="5"></div></div>
+          <span data-week-count="5">0/0</span>
+        </div>
+      </div>
+    </div>
+    <div class="expand-icon">▼</div>
+  </div>
+  <div class="week-content">
+    <div class="week-inner">
+      <div class="goal">
+        <strong>Ugens mål</strong>
+        Bruge effekter og loops musikalsk — ikke bare fordi de findes.
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 1-2</span>Beat FX grundlaget</div>
+        <div class="task" data-id="w5-d1-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Se video om DDJ-400 Beat FX</span> <a class="video-link" href="https://www.youtube.com/results?search_query=DDJ-400+beat+FX+tutorial" target="_blank" rel="noopener">Søg: DDJ-400 Beat FX</a></div></div>
+        <div class="task" data-id="w5-d1-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Lær de 6 vigtigste FX: ECHO, DELAY, REVERB, FILTER, PHASER, ROLL</span></div></div>
+        <div class="task" data-id="w5-d1-t3"><input type="checkbox"><div class="task-content"><span class="task-label">ECHO OUT: perfekt til at afslutte et track — start echo og fade track ud samtidigt</span></div></div>
+        <div class="task" data-id="w5-d1-t4"><input type="checkbox"><div class="task-content"><span class="task-label">Filter (på mixer): drej HI Pass under en breakdown for at bygge spænding</span></div></div>
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 3-4</span>Loops</div>
+        <div class="task" data-id="w5-d2-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Auto loop: hold IN+OUT eller brug loop-knapper. Prøv 4-bar, 2-bar, 1-bar loops</span></div></div>
+        <div class="task" data-id="w5-d2-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Brug loop til at forlænge en intro/outro der er for kort</span></div></div>
+        <div class="task" data-id="w5-d2-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Loop roll (pad-mode): korte loops der lyder som stutter — 1/4, 1/8, 1/16 beat</span></div></div>
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 5-7</span>Kombinér</div>
+        <div class="task" data-id="w5-d3-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Byg et 20-min sæt hvor du bruger mindst 3 forskellige FX og 2 loops</span></div></div>
+        <div class="task" data-id="w5-d3-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Regel: hvis en effekt ikke tjener overgangen eller energien, så lad være</span></div></div>
+        <div class="task" data-id="w5-d3-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Optag og lyt tilbage — bemærk hvor du overbruger effekter</span></div></div>
+      </div>
+
+      <div class="tip">
+        <strong>💡 Tip</strong>
+        Nye DJs bruger for mange effekter. Erfarne DJs bruger få, men på det rigtige tidspunkt. Mindre er mere.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UGE 6 -->
+<div class="week">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <div class="week-header-left">
+      <div class="week-number w6">6</div>
+      <div class="week-title">
+        <h3><span class="stage-chip chip-flow">Flow</span>Track-udvælgelse og buildup</h3>
+        <div class="subtitle">Fortæl en historie gennem 30 minutter</div>
+        <div class="week-progress">
+          <div class="mini-bar"><div class="mini-bar-fill" data-week="6"></div></div>
+          <span data-week-count="6">0/0</span>
+        </div>
+      </div>
+    </div>
+    <div class="expand-icon">▼</div>
+  </div>
+  <div class="week-content">
+    <div class="week-inner">
+      <div class="goal">
+        <strong>Ugens mål</strong>
+        Kunne planlægge og eksekvere et sæt med bevidst opbygning — starte roligt, bygge til klimaks, lande blødt.
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 1-2</span>Harmonisk mixing (key)</div>
+        <div class="task" data-id="w6-d1-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Se video om harmonic mixing og Camelot-hjulet</span> <a class="video-link" href="https://www.youtube.com/results?search_query=harmonic+mixing+camelot+wheel+tutorial" target="_blank" rel="noopener">Søg: harmonic mixing camelot</a></div></div>
+        <div class="task" data-id="w6-d1-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Rekordbox viser hver tracks key. Lær Camelot-hjulet (fx 8A → 8B eller 9A er kompatible)</span></div></div>
+        <div class="task" data-id="w6-d1-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Sortér din playliste efter key og prøv at mixe tracks der er tonalt kompatible</span></div></div>
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 3-4</span>Energi-kurve</div>
+        <div class="task" data-id="w6-d2-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Planlæg 30-min sæt: 10 tracks, med tydelig energi-kurve (lav → høj → lav)</span></div></div>
+        <div class="task" data-id="w6-d2-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Undgå at spille peak-time bangers i starten — du har intet at bygge op til</span></div></div>
+        <div class="task" data-id="w6-d2-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Prøv bevidst at slå tempoet op med 1-2 BPM undervejs (fx 122 → 126)</span></div></div>
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 5-7</span>Eksekvér</div>
+        <div class="task" data-id="w6-d3-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Optag hele det planlagte 30-min sæt (kun lokale tracks for optagelse)</span></div></div>
+        <div class="task" data-id="w6-d3-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Lyt til det og notér 3 ting der virkede og 3 der kan forbedres</span></div></div>
+        <div class="task" data-id="w6-d3-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Optag det igen med rettelser</span></div></div>
+      </div>
+
+      <div class="tip">
+        <strong>💡 Tip</strong>
+        Et godt sæt er som en samtale eller en middag — det starter roligt, får folk med, topper, og lander. Tænk på det som en fortælling, ikke en playlist.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UGE 7 -->
+<div class="week">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <div class="week-header-left">
+      <div class="week-number w7">7</div>
+      <div class="week-title">
+        <h3><span class="stage-chip chip-performance">Performance</span>Din stil og genre</h3>
+        <div class="subtitle">Find hvad DU gerne vil spille</div>
+        <div class="week-progress">
+          <div class="mini-bar"><div class="mini-bar-fill" data-week="7"></div></div>
+          <span data-week-count="7">0/0</span>
+        </div>
+      </div>
+    </div>
+    <div class="expand-icon">▼</div>
+  </div>
+  <div class="week-content">
+    <div class="week-inner">
+      <div class="goal">
+        <strong>Ugens mål</strong>
+        Definere hvilken slags DJ du gerne vil være, og bygge et fundament af 30-50 tracks du elsker.
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 1-2</span>Genre-udforskning</div>
+        <div class="task" data-id="w7-d1-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Lyt bredt på Spotify: house, tech house, deep house, melodic techno, disco, funk</span></div></div>
+        <div class="task" data-id="w7-d1-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Notér 5 DJs eller labels du særligt kan lide (fx Diynamic, Innervisions, DFTD)</span></div></div>
+        <div class="task" data-id="w7-d1-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Følg deres playlister og radio shows</span></div></div>
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 3-4</span>Byg dit signatur-bibliotek</div>
+        <div class="task" data-id="w7-d2-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Vælg 30-50 tracks der repræsenterer din smag — dette bliver dit "core library"</span></div></div>
+        <div class="task" data-id="w7-d2-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Køb de vigtigste 10-15 som lokale filer (Beatport, Bandcamp)</span></div></div>
+        <div class="task" data-id="w7-d2-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Organisér i Rekordbox med tags: energi-niveau, genre, tid-på-natten</span></div></div>
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 5-7</span>Test din stil</div>
+        <div class="task" data-id="w7-d3-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Spil kun fra dit signatur-bibliotek — mix 45 minutter</span></div></div>
+        <div class="task" data-id="w7-d3-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Lyt tilbage: føles det som "dig"? Eller kopierer du andre?</span></div></div>
+        <div class="task" data-id="w7-d3-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Justér udvalget baseret på hvad der føles ægte</span></div></div>
+      </div>
+
+      <div class="tip">
+        <strong>💡 Tip</strong>
+        Det tager år at finde en signatur-stil, men du kan starte nu ved at være ærlig omkring hvad du virkelig kan lide — ikke hvad du tror du burde spille.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UGE 8 -->
+<div class="week">
+  <div class="week-header" onclick="toggleWeek(this)">
+    <div class="week-header-left">
+      <div class="week-number w8">8</div>
+      <div class="week-title">
+        <h3><span class="stage-chip chip-performance">Performance</span>Dit første "gig"</h3>
+        <div class="subtitle">Optag et fuldt sæt og del det</div>
+        <div class="week-progress">
+          <div class="mini-bar"><div class="mini-bar-fill" data-week="8"></div></div>
+          <span data-week-count="8">0/0</span>
+        </div>
+      </div>
+    </div>
+    <div class="expand-icon">▼</div>
+  </div>
+  <div class="week-content">
+    <div class="week-inner">
+      <div class="goal">
+        <strong>Ugens mål</strong>
+        Optage, produktificere og dele et 60-minutters mix. Første milepæl!
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 1-2</span>Planlæg sættet</div>
+        <div class="task" data-id="w8-d1-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Vælg 15-18 tracks til et 60-min sæt (kun lokale, ikke Spotify — vi vil optage)</span></div></div>
+        <div class="task" data-id="w8-d1-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Skitsér energi-kurven og noter overgangs-punkter</span></div></div>
+        <div class="task" data-id="w8-d1-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Prøv-mix hele sættet én gang uden at optage — bare for at teste flow</span></div></div>
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 3-4</span>Optag</div>
+        <div class="task" data-id="w8-d2-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Optag hele sættet i Rekordbox (REC-knap). En take, én chance</span></div></div>
+        <div class="task" data-id="w8-d2-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Accepter at det ikke er perfekt. Første takes er aldrig perfekte</span></div></div>
+        <div class="task" data-id="w8-d2-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Hvis det virkelig gik galt, optag igen — max 3 forsøg</span></div></div>
+      </div>
+
+      <div class="day">
+        <div class="day-title"><span class="day-badge">Dag 5-7</span>Del og reflektér</div>
+        <div class="task" data-id="w8-d3-t1"><input type="checkbox"><div class="task-content"><span class="task-label">Lyt til det færdige sæt i sin helhed</span></div></div>
+        <div class="task" data-id="w8-d3-t2"><input type="checkbox"><div class="task-content"><span class="task-label">Upload til Mixcloud (gratis, understøtter kommercielle tracks lovligt)</span></div></div>
+        <div class="task" data-id="w8-d3-t3"><input type="checkbox"><div class="task-content"><span class="task-label">Del med Mette og et par venner — bed om ærlig feedback</span></div></div>
+        <div class="task" data-id="w8-d3-t4"><input type="checkbox"><div class="task-content"><span class="task-label">Skriv 5 ting du vil arbejde videre med efter dette program</span></div></div>
+      </div>
+
+      <div class="tip">
+        <strong>💡 Tip</strong>
+        Efter 8 uger er du ikke færdig-DJ — men du er ude på den rigtige side af den stejleste del af læringskurven. Nu handler det om timer bag controlleren.
+      </div>
+
+      <div class="resources">
+        <strong>🎯 Næste skridt efter uge 8</strong>
+        <ul>
+          <li>Book en varm-op-slot på en lokal bar eller vennefest</li>
+          <li>Lav en månedlig Mixcloud-serie for at holde disciplinen</li>
+          <li>Udforsk avancerede teknikker: stems (kun lokale filer), harmonic layering</li>
+          <li>Overvej et betalt kursus hos Digital DJ Tips eller Crossfader</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="final-section">
+  <h3>God fornøjelse på rejsen 🎧</h3>
+  <p>Husk: alle DJs var engang totale begyndere. Det handler ikke om talent — det handler om timer.</p>
+  <button class="reset-btn" onclick="resetProgress()">Nulstil fremskridt</button>
+</div>
+
+<!-- Firebase configuration -->
+<script type="module">
+  // ============================================================
+  // FIREBASE CONFIG — udfyld disse værdier fra din Firebase console
+  // Se README-firebase-setup.md for trin-for-trin guide
+  // ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyD24VerI4G6K-Fz_cjMKiFALAi9EylOAAo",
+  authDomain: "dj-ddj-11bfd.firebaseapp.com",
+  projectId: "dj-ddj-11bfd",
+  storageBucket: "dj-ddj-11bfd.firebasestorage.app",
+  messagingSenderId: "1056006041471",
+  appId: "1:1056006041471:web:18a4b72536d47112ddf44a"
+};
+
+  // Check om Firebase er konfigureret
+  const firebaseConfigured = firebaseConfig.apiKey !== "DIN_API_KEY";
+
+  let db = null;
+  let userId = null;
+  let useFirebase = false;
+
+  const syncDot = document.getElementById('syncDot');
+  const syncText = document.getElementById('syncText');
+
+  if (firebaseConfigured) {
+    try {
+      const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+      const { getAuth, signInAnonymously, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+      const { getFirestore, doc, setDoc, getDoc, onSnapshot } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      db = getFirestore(app);
+
+      // Anonym login
+      await signInAnonymously(auth);
+
+      await new Promise((resolve) => {
+        onAuthStateChanged(auth, (user) => {
+          if (user) {
+            userId = user.uid;
+            useFirebase = true;
+            syncDot.classList.add('connected');
+            syncText.textContent = 'Synkroniseret';
+            resolve();
+          }
+        });
+      });
+
+      // Global save function
+      window._saveToFirebase = async function(state) {
+        try {
+          await setDoc(doc(db, 'dj-progress', userId), {
+            state: state,
+            updatedAt: new Date().toISOString()
+          });
+        } catch (e) {
+          console.error('Firebase save failed:', e);
+          syncText.textContent = 'Gemmer lokalt';
+          syncDot.classList.remove('connected');
+          syncDot.classList.add('local');
+        }
+      };
+
+      // Global load function
+      window._loadFromFirebase = async function() {
+        try {
+          const snap = await getDoc(doc(db, 'dj-progress', userId));
+          return snap.exists() ? snap.data().state : {};
+        } catch (e) {
+          console.error('Firebase load failed:', e);
+          return null;
+        }
+      };
+
+      // Real-time sync på tværs af browsere/enheder
+      onSnapshot(doc(db, 'dj-progress', userId), (snap) => {
+        if (snap.exists() && snap.metadata.hasPendingWrites === false) {
+          const state = snap.data().state || {};
+          window._applyState(state);
+        }
+      });
+
+    } catch (e) {
+      console.error('Firebase init failed:', e);
+      useFirebase = false;
+      syncDot.classList.add('local');
+      syncText.textContent = 'Lokal (Firebase fejlede)';
+    }
+  } else {
+    syncDot.classList.add('local');
+    syncText.textContent = 'Lokal (Firebase ikke konfigureret)';
+  }
+
+  window._useFirebase = () => useFirebase;
+</script>
+
+<script>
+  // ============================================================
+  // Main app-logik med Firebase + localStorage fallback
+  // ============================================================
+  const STORAGE_KEY = 'dj-program-progress-v2';
+
+  function toggleWeek(header) {
+    const week = header.parentElement;
+    week.classList.toggle('open');
+  }
+
+  function getState() {
+    const state = {};
+    document.querySelectorAll('.task').forEach(task => {
+      const id = task.dataset.id;
+      const cb = task.querySelector('input[type="checkbox"]');
+      if (cb.checked) state[id] = true;
+    });
+    return state;
+  }
+
+  function applyState(state) {
+    document.querySelectorAll('.task').forEach(task => {
+      const id = task.dataset.id;
+      const cb = task.querySelector('input[type="checkbox"]');
+      const checked = !!state[id];
+      cb.checked = checked;
+      task.classList.toggle('done', checked);
+    });
+    updateProgress();
+  }
+
+  window._applyState = applyState;
+
+  async function saveProgress() {
+    const state = getState();
+    // Altid gem lokalt som backup
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch(e) { console.warn('localStorage failed', e); }
+
+    // Gem også i Firebase hvis tilgængeligt
+    if (window._useFirebase && window._useFirebase()) {
+      await window._saveToFirebase(state);
+    }
+  }
+
+  async function loadProgress() {
+    let state = null;
+
+    // Prøv Firebase først
+    if (window._useFirebase && window._useFirebase()) {
+      state = await window._loadFromFirebase();
+    }
+
+    // Fallback til localStorage
+    if (!state) {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        state = saved ? JSON.parse(saved) : {};
+      } catch(e) {
+        state = {};
+      }
+    }
+
+    applyState(state);
+  }
+
+  function updateProgress() {
+    const allBoxes = document.querySelectorAll('.task input[type="checkbox"]');
+    const doneBoxes = document.querySelectorAll('.task input[type="checkbox"]:checked');
+    const total = allBoxes.length;
+    const done = doneBoxes.length;
+    const pct = total === 0 ? 0 : (done / total) * 100;
+
+    document.getElementById('mainProgress').style.width = pct + '%';
+    document.getElementById('progressText').textContent = done + ' af ' + total + ' opgaver fuldført';
+
+    document.querySelectorAll('.week').forEach((weekEl, idx) => {
+      const weekNum = idx + 1;
+      const weekBoxes = weekEl.querySelectorAll('.task input[type="checkbox"]');
+      const weekDone = weekEl.querySelectorAll('.task input[type="checkbox"]:checked');
+      const wTotal = weekBoxes.length;
+      const wDone = weekDone.length;
+      const wPct = wTotal === 0 ? 0 : (wDone / wTotal) * 100;
+
+      const bar = document.querySelector(`.mini-bar-fill[data-week="${weekNum}"]`);
+      const count = document.querySelector(`[data-week-count="${weekNum}"]`);
+      if (bar) bar.style.width = wPct + '%';
+      if (count) count.textContent = wDone + '/' + wTotal;
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    document.querySelectorAll('.task').forEach(task => {
+      const checkbox = task.querySelector('input[type="checkbox"]');
+
+      // Click på task-området toggler checkbox (undtagen på video-links)
+      task.addEventListener('click', (e) => {
+        if (e.target.tagName === 'A' || e.target.closest('a')) return;
+        if (e.target !== checkbox) {
+          checkbox.checked = !checkbox.checked;
+          checkbox.dispatchEvent(new Event('change'));
+        }
+      });
+
+      checkbox.addEventListener('change', () => {
+        task.classList.toggle('done', checkbox.checked);
+        saveProgress();
+        updateProgress();
+      });
+    });
+
+    // Vent på at Firebase har haft tid til at initialisere
+    setTimeout(async () => {
+      await loadProgress();
+    }, 500);
+  });
+
+  async function resetProgress() {
+    if (confirm('Er du sikker på at du vil nulstille dit fremskridt?')) {
+      try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+      document.querySelectorAll('.task input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+        cb.closest('.task').classList.remove('done');
+      });
+      await saveProgress();
+      updateProgress();
+    }
+  }
+</script>
+
+</body>
+</html>
