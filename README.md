@@ -1,47 +1,43 @@
-# DJ-læringsprogram — Setup Guide
+# DJ-læringsprogram v3 — Setup Guide (Google-login)
 
 ## Hvad du får
 
 Et selvstændigt HTML-program med:
 - 8 ugers struktureret DJ-læringsprogram
 - YouTube-links direkte ved hver relevante opgave
-- Automatisk synkronisering af dine checks via Firebase
-- Fallback til browserens localStorage hvis Firebase ikke er sat op
-- Virker på tværs af enheder (samme URL = samme fremskridt)
+- **Google-login** — dine data følger med på tværs af PC, iPad og telefon
+- Real-time synkronisering: check noget på PC'en, og det opdateres på iPad'en med det samme
+- Fallback til localStorage hvis Firebase ikke er tilgængelig
 
-## Trin 1: Firebase-projekt (5-10 minutter)
+## Din config er allerede indsat
 
-### 1.1 Opret projekt
+Din Firebase-config står allerede i filen:
+- Projekt: `dj-ddj-11bfd`
+- Auth domain: `dj-ddj-11bfd.firebaseapp.com`
+
+Så du skal ikke redigere HTML-filen. Der er tre ting du skal gøre i Firebase Console, og så skal filen op på GitHub Pages.
+
+---
+
+## Trin 1: Aktivér Google-login i Firebase (2 min)
 
 1. Gå til [console.firebase.google.com](https://console.firebase.google.com/)
-2. Log ind med din Google-konto
-3. Klik **"Add project"** (eller "Tilføj projekt")
-4. Navn: fx `dj-program-lars`
-5. Google Analytics: **fravælg** (ikke nødvendigt)
-6. Klik **Create project**
+2. Vælg dit projekt **dj-ddj-11bfd**
+3. Venstre menu: **Build → Authentication**
+4. Fanen **Sign-in method**
+5. Hvis **Anonymous** stadig er slået til fra sidste version, kan du lade den være (det gør ingen skade) eller slå den fra
+6. Klik på **Google** i listen
+7. Slå **Enable** til
+8. **Support email:** vælg din egen email
+9. Klik **Save**
 
-### 1.2 Aktivér Anonymous Authentication
+## Trin 2: Firestore-regler (2 min)
 
-1. I venstre menu: **Build → Authentication**
-2. Klik **Get started**
-3. Under **Sign-in method**, klik på **Anonymous**
-4. Slå den **Enable** til
-5. Klik **Save**
+Sikkerhedsreglerne skal justeres — nu bruger vi den fulde Google UID i stedet for anonym UID (samme regel virker faktisk, men lad os bekræfte):
 
-### 1.3 Opret Firestore Database
-
-1. I venstre menu: **Build → Firestore Database**
-2. Klik **Create database**
-3. Vælg **Start in production mode**
-4. Location: **eur3 (europe-west)** — vælg en europæisk region
-5. Klik **Enable**
-
-### 1.4 Konfigurer sikkerhedsregler
-
-Når databasen er oprettet:
-
-1. Gå til fanen **Rules**
-2. Erstat indholdet med:
+1. Venstre menu: **Firestore Database**
+2. Fanen **Rules**
+3. Sørg for at der står:
 
 ```
 rules_version = '2';
@@ -54,109 +50,114 @@ service cloud.firestore {
 }
 ```
 
-3. Klik **Publish**
+4. Klik **Publish**
 
-Dette sikrer at kun du kan læse/skrive dine egne data.
+Reglen siger: kun logget-ind brugere kan læse/skrive, og kun deres eget dokument.
 
-### 1.5 Hent din config
+## Trin 3: Upload til GitHub
 
-1. I venstre menu, klik på **⚙️ (tandhjul) → Project settings**
-2. Scroll ned til **Your apps**
-3. Klik på **web-ikonet (`</>`)** for at oprette en web-app
-4. Navn: fx `dj-program-web`
-5. **Undlad** at hakke i "Firebase Hosting"
-6. Klik **Register app**
-7. Kopiér `firebaseConfig`-objektet — det ser sådan ud:
+1. Omdøb `dj-laeringsprogram-v3.html` til `index.html`
+2. Upload til dit `dj-program`-repo (eller opret et nyt)
+3. Aktivér GitHub Pages: **Settings → Pages → Deploy from branch → main / root**
+4. Vent 1-2 minutter
 
-```javascript
-const firebaseConfig = {
-  apiKey: "AIzaSyABC123...",
-  authDomain: "dj-program-lars.firebaseapp.com",
-  projectId: "dj-program-lars",
-  storageBucket: "dj-program-lars.appspot.com",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:abc123"
-};
-```
-
-## Trin 2: Indsæt config i HTML-filen
-
-1. Åbn `dj-laeringsprogram-v2.html` i en teksteditor
-2. Find blokken der starter med `// FIREBASE CONFIG` (ca. linje 750)
-3. Erstat placeholder-værdierne med dine rigtige værdier fra Firebase
-4. Gem filen
-
-## Trin 3: GitHub Pages-opsætning
-
-### 3.1 Opret repository
-
-1. Gå til [github.com](https://github.com) og opret et nyt repo, fx `dj-program`
-2. Sæt det til **Public** (kræves for gratis GitHub Pages)
-
-### 3.2 Upload filen
-
-**Nemmeste vej:**
-
-1. Omdøb `dj-laeringsprogram-v2.html` til `index.html`
-2. På GitHub-siden af dit nye repo, klik **Add file → Upload files**
-3. Træk `index.html` ind
-4. Klik **Commit changes**
-
-### 3.3 Aktivér GitHub Pages
-
-1. Gå til **Settings** på dit repo
-2. Venstre menu: **Pages**
-3. Under **Source**, vælg **Deploy from a branch**
-4. Branch: **main** / **root**
-5. Klik **Save**
-6. Vent 1-2 minutter
-
-Din side er nu tilgængelig på:
+Din side er nu på:
 `https://[dit-username].github.io/dj-program/`
 
-### 3.4 Autoriser din GitHub Pages-URL i Firebase
+## Trin 4: Autoriser dit domæne i Firebase (kritisk!)
 
-Vigtigt sidste trin:
+**Uden dette trin virker Google-login IKKE på GitHub Pages.**
 
-1. Tilbage i Firebase Console → **Authentication → Settings**
+1. Firebase Console → **Authentication → Settings**
 2. Fanen **Authorized domains**
-3. Klik **Add domain**
-4. Tilføj: `[dit-username].github.io` (uden https:// og uden path)
-5. Klik **Add**
+3. Du bør allerede se `localhost` og `dj-ddj-11bfd.firebaseapp.com`
+4. Klik **Add domain**
+5. Skriv: `[dit-username].github.io` (kun domænet, uden `https://` og uden `/dj-program`)
+6. Klik **Add**
 
-Uden dette vil anonym login fejle på GitHub Pages, og programmet vil falde tilbage til localStorage.
+---
 
-## Sådan virker synkronisering
+## Sådan virker det
 
-- Programmet logger dig automatisk ind som anonym bruger første gang
-- Din unikke ID gemmes i browseren
-- Alle dine checks synkroniseres real-time til Firebase
-- Åbner du samme URL i en anden browser eller enhed, får du **et nyt anonymt ID** — så din progression synkroniserer *ikke* automatisk på tværs af enheder med denne opsætning
+**Første besøg:**
+- Login-vindue vises
+- Klik "Log ind med Google" → Google-popup → vælg konto
+- Popup lukker → du er inde
 
-### Hvis du vil have adgang fra flere enheder
+**Efter login:**
+- Din Google-avatar og navn vises øverst i venstre hjørne
+- "Synkroniseret" med grøn prik øverst i højre hjørne
+- Alle checks gemmes automatisk i Firebase
 
-Du har to muligheder:
+**Fra anden enhed (fx iPad):**
+- Åbn samme URL
+- Log ind med samme Google-konto
+- Dit fremskridt vises med det samme
+- Checker du noget på PC'en, opdateres iPad'en real-time
 
-**A) Manuel export/import** — kopier localStorage mellem browsere (kompliceret)
+**Log ud:**
+- Klik "Log ud"-knappen i header
+- Login-vindue vises igen
 
-**B) Skift til Google-login** — jeg kan lave den om til at bruge din Google-konto som identifikator, så dine data følger dig. Sig til hvis du vil have det.
+---
 
 ## Fejlfinding
 
-**Ingen synkronisering / "Lokal" i toppen:**
-- Tjek at du har indsat den korrekte config
-- Tjek at din GitHub Pages-URL er tilføjet under Authorized domains
-- Åbn browserens konsol (F12) og se om der er fejlbeskeder
+### "Login fejlede: unauthorized domain"
 
-**Checks forsvinder ikke:**
-- Programmet gemmer altid lokalt som backup — så selv uden Firebase virker det
-- Ryd browserens localStorage hvis du vil starte forfra: F12 → Application → Local Storage → slet nøglen `dj-program-progress-v2`
+Du har glemt trin 4. Tilføj din GitHub Pages-URL under Authorized domains.
 
-**Firestore-omkostninger:**
-- Gratis tier: 50.000 læsninger og 20.000 skrivninger om dagen. Du vil aldrig komme i nærheden af dette.
+### Popup lukker med det samme uden at logge mig ind
 
-## Gratis grænser (Firebase Spark plan)
+- Tjek at popups ikke er blokeret af browseren
+- Filen falder automatisk tilbage til redirect-flow hvis popup blokeres
+- Ved redirect skal du klikke Google-knappen én ekstra gang efter du kommer tilbage til siden
 
-- Firestore: 1 GB storage, 50k reads/day, 20k writes/day
-- Authentication: ubegrænset anonyme brugere
-- **Du kommer aldrig til at betale noget** til dette projekt
+### Jeg kan ikke se dine data fra en anden enhed
+
+- Er du logget ind med **samme** Google-konto på begge enheder?
+- Tjek "Synkroniseret" med grøn prik er synlig
+- F12 → Console for at se om der er fejl
+
+### Vil ikke logge mig ind på iPad Safari
+
+Safari på iOS har strikse regler om cross-site cookies. Hvis popup fejler:
+- Tillad "Cross-Site Tracking" for `firebaseapp.com` i iOS Settings → Safari → Advanced
+- Eller brug Chrome på iPad
+
+### "Firebase: Error (auth/operation-not-allowed)"
+
+Google-login er ikke aktiveret. Gå tilbage til trin 1.
+
+### Data forsvinder ikke fra localStorage
+
+localStorage bruges nu kun som midlertidig cache før login. Efter login synkroniseres alt fra Firebase. Hvis du vil rydde: F12 → Application → Local Storage → slet nøglen `dj-program-progress-v2`.
+
+---
+
+## Sikkerhed
+
+- **API-key i HTML:** Fint. Firebase API-keys er offentlige — de identificerer projektet, ikke brugeren
+- **Din sikkerhed:** Kommer 100% fra Firestore Rules i trin 2
+- **Data i cloud:** Kun du (via din Google-konto) kan læse/skrive dit dokument
+- **Ingen andre kan se dit fremskridt** — reglerne blokerer det
+
+## Gratis grænser
+
+Firebase Spark plan (gratis):
+- Authentication: ubegrænset Google-logins
+- Firestore: 50k reads, 20k writes, 1 GB storage per dag
+- **Du kommer aldrig i nærheden af grænserne** med dette program
+
+---
+
+## Overgang fra v2 (anonym)
+
+Hvis du har brugt v2 (anonym auth) og har progression du vil beholde:
+
+1. Åbn v2 i din browser og notér hvilke opgaver du har checket
+2. Skift til v3
+3. Log ind med Google
+4. Check opgaverne manuelt igen
+
+Der er desværre ingen automatisk migration fordi anonym auth og Google auth giver forskellige user IDs. Beklager — men det er første og eneste gang du skal gøre det.
