@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DJ-læringsprogram · DDJ-400</title>
+<link rel="preconnect" href="https://www.gstatic.com">
 <style>
   :root {
     --cyan: #009DF0;
@@ -413,11 +414,170 @@
     header { padding: 32px; }
     header h1 { font-size: 28px; }
   }
+
+  /* Login overlay */
+  .login-overlay {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, var(--ocean) 0%, var(--cyan) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+
+  .login-overlay.hidden { display: none; }
+
+  .login-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 32px 28px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+
+  .login-card h2 {
+    color: var(--ocean);
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+
+  .login-card p {
+    color: var(--mountain);
+    font-size: 14px;
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  .login-emoji {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+
+  .google-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--white);
+    border: 1px solid #dadce0;
+    color: #3c4043;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+
+  .google-btn:hover {
+    background: #f8f9fa;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  .google-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .login-error {
+    margin-top: 16px;
+    padding: 10px 14px;
+    background: rgba(255, 136, 85, 0.15);
+    border-radius: 6px;
+    color: var(--heath);
+    font-size: 12px;
+    display: none;
+  }
+
+  .login-error.visible { display: block; }
+
+  /* User info i header */
+  .user-info {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.9);
+  }
+
+  .user-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 11px;
+    overflow: hidden;
+  }
+
+  .user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .signout-btn {
+    background: rgba(255,255,255,0.15);
+    color: var(--white);
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: inherit;
+    margin-left: 4px;
+  }
+
+  .signout-btn:hover { background: rgba(255,255,255,0.25); }
+
+  header {
+    padding-top: 52px;
+  }
+
+  @media (min-width: 700px) {
+    header { padding-top: 60px; }
+  }
 </style>
 </head>
 <body>
 
+<!-- Login-overlay -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <div class="login-emoji">🎧</div>
+    <h2>DJ-læringsprogram</h2>
+    <p>Log ind for at gemme dit fremskridt og få adgang fra alle dine enheder.</p>
+    <button class="google-btn" id="googleLoginBtn">
+      <svg class="google-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+      </svg>
+      Log ind med Google
+    </button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
 <header>
+  <div class="user-info" id="userInfo" style="display: none;">
+    <div class="user-avatar" id="userAvatar"></div>
+    <span id="userName"></span>
+    <button class="signout-btn" id="signoutBtn">Log ud</button>
+  </div>
   <div class="sync-status" id="syncStatus">
     <div class="sync-dot" id="syncDot"></div>
     <span id="syncText">Starter op...</span>
@@ -438,6 +598,7 @@
     <li>Hovedtelefoner er dit vigtigste værktøj i starten</li>
     <li>Sæt 30-45 min af pr. session — kort og fokuseret slår langt og trættende</li>
     <li>🔴 = link til YouTube-video der matcher opgaven</li>
+    <li>Dit fremskridt følger med din Google-konto — brug samme login på PC og iPad</li>
   </ul>
 </div>
 
@@ -890,102 +1051,205 @@
   <button class="reset-btn" onclick="resetProgress()">Nulstil fremskridt</button>
 </div>
 
-<!-- Firebase configuration -->
+<!-- Firebase med Google Auth -->
 <script type="module">
   // ============================================================
-  // FIREBASE CONFIG — udfyld disse værdier fra din Firebase console
-  // Se README-firebase-setup.md for trin-for-trin guide
+  // FIREBASE CONFIG
   // ============================================================
-const firebaseConfig = {
-  apiKey: "AIzaSyD24VerI4G6K-Fz_cjMKiFALAi9EylOAAo",
-  authDomain: "dj-ddj-11bfd.firebaseapp.com",
-  projectId: "dj-ddj-11bfd",
-  storageBucket: "dj-ddj-11bfd.firebasestorage.app",
-  messagingSenderId: "1056006041471",
-  appId: "1:1056006041471:web:18a4b72536d47112ddf44a"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyD24VerI4G6K-Fz_cjMKiFALAi9EylOAAo",
+    authDomain: "dj-ddj-11bfd.firebaseapp.com",
+    projectId: "dj-ddj-11bfd",
+    storageBucket: "dj-ddj-11bfd.firebasestorage.app",
+    messagingSenderId: "1056006041471",
+    appId: "1:1056006041471:web:18a4b72536d47112ddf44a"
+  };
 
-  // Check om Firebase er konfigureret
   const firebaseConfigured = firebaseConfig.apiKey !== "DIN_API_KEY";
 
-  let db = null;
-  let userId = null;
-  let useFirebase = false;
-
+  // UI-referencer
+  const loginOverlay = document.getElementById('loginOverlay');
+  const googleLoginBtn = document.getElementById('googleLoginBtn');
+  const loginError = document.getElementById('loginError');
+  const userInfo = document.getElementById('userInfo');
+  const userAvatar = document.getElementById('userAvatar');
+  const userName = document.getElementById('userName');
+  const signoutBtn = document.getElementById('signoutBtn');
   const syncDot = document.getElementById('syncDot');
   const syncText = document.getElementById('syncText');
 
-  if (firebaseConfigured) {
+  let db = null;
+  let auth = null;
+  let currentUser = null;
+  let useFirebase = false;
+  let unsubscribeSnapshot = null;
+
+  function showError(msg) {
+    loginError.textContent = msg;
+    loginError.classList.add('visible');
+  }
+
+  function hideError() {
+    loginError.classList.remove('visible');
+  }
+
+  if (!firebaseConfigured) {
+    // Fallback: skjul login, brug localStorage
+    loginOverlay.classList.add('hidden');
+    syncDot.classList.add('local');
+    syncText.textContent = 'Lokal (Firebase ikke konfigureret)';
+    window._useFirebase = () => false;
+  } else {
     try {
       const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-      const { getAuth, signInAnonymously, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+      const {
+        getAuth,
+        GoogleAuthProvider,
+        signInWithPopup,
+        signInWithRedirect,
+        getRedirectResult,
+        onAuthStateChanged,
+        signOut,
+        setPersistence,
+        browserLocalPersistence
+      } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
       const { getFirestore, doc, setDoc, getDoc, onSnapshot } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
 
       const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
+      auth = getAuth(app);
       db = getFirestore(app);
 
-      // Anonym login
-      await signInAnonymously(auth);
+      // Persistens: log kun ind én gang per browser
+      await setPersistence(auth, browserLocalPersistence);
 
-      await new Promise((resolve) => {
-        onAuthStateChanged(auth, (user) => {
-          if (user) {
-            userId = user.uid;
-            useFirebase = true;
-            syncDot.classList.add('connected');
-            syncText.textContent = 'Synkroniseret';
-            resolve();
+      const provider = new GoogleAuthProvider();
+
+      // Håndtér evt. redirect-resultat (bruges hvis popup blokkeres)
+      try {
+        await getRedirectResult(auth);
+      } catch (e) {
+        console.warn('Redirect result error:', e);
+      }
+
+      // Login-knap
+      googleLoginBtn.addEventListener('click', async () => {
+        hideError();
+        googleLoginBtn.disabled = true;
+        try {
+          await signInWithPopup(auth, provider);
+        } catch (e) {
+          console.error('Popup login failed:', e);
+          if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user') {
+            // Fald tilbage til redirect
+            try {
+              await signInWithRedirect(auth, provider);
+            } catch (e2) {
+              showError('Login fejlede: ' + e2.message);
+              googleLoginBtn.disabled = false;
+            }
+          } else if (e.code === 'auth/unauthorized-domain') {
+            showError('Dette domæne er ikke autoriseret i Firebase. Tilføj det under Authentication → Settings → Authorized domains.');
+            googleLoginBtn.disabled = false;
+          } else {
+            showError('Login fejlede: ' + e.message);
+            googleLoginBtn.disabled = false;
           }
-        });
+        }
       });
 
-      // Global save function
+      // Sign out
+      signoutBtn.addEventListener('click', async () => {
+        if (unsubscribeSnapshot) unsubscribeSnapshot();
+        await signOut(auth);
+      });
+
+      // Auth state listener
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          currentUser = user;
+          useFirebase = true;
+
+          // Opdatér UI
+          loginOverlay.classList.add('hidden');
+          userInfo.style.display = 'flex';
+          userName.textContent = user.displayName || user.email || 'Bruger';
+
+          if (user.photoURL) {
+            userAvatar.innerHTML = `<img src="${user.photoURL}" referrerpolicy="no-referrer" alt="">`;
+          } else {
+            const initial = (user.displayName || user.email || '?')[0].toUpperCase();
+            userAvatar.textContent = initial;
+          }
+
+          syncDot.classList.remove('local');
+          syncDot.classList.add('connected');
+          syncText.textContent = 'Synkroniseret';
+
+          // Start real-time sync
+          unsubscribeSnapshot = onSnapshot(doc(db, 'dj-progress', user.uid), (snap) => {
+            if (snap.exists() && snap.metadata.hasPendingWrites === false) {
+              const state = snap.data().state || {};
+              if (window._applyState) window._applyState(state);
+            }
+          });
+
+          // Load initial state
+          if (window._loadProgress) await window._loadProgress();
+        } else {
+          currentUser = null;
+          useFirebase = false;
+
+          // Vis login igen
+          loginOverlay.classList.remove('hidden');
+          userInfo.style.display = 'none';
+          syncDot.classList.remove('connected');
+          syncDot.classList.add('local');
+          syncText.textContent = 'Ikke logget ind';
+
+          if (unsubscribeSnapshot) {
+            unsubscribeSnapshot();
+            unsubscribeSnapshot = null;
+          }
+        }
+      });
+
+      // Save function
       window._saveToFirebase = async function(state) {
+        if (!currentUser) return;
         try {
-          await setDoc(doc(db, 'dj-progress', userId), {
+          await setDoc(doc(db, 'dj-progress', currentUser.uid), {
             state: state,
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
+            userEmail: currentUser.email || null
           });
         } catch (e) {
           console.error('Firebase save failed:', e);
-          syncText.textContent = 'Gemmer lokalt';
-          syncDot.classList.remove('connected');
-          syncDot.classList.add('local');
+          syncText.textContent = 'Sync-fejl';
         }
       };
 
-      // Global load function
+      // Load function
       window._loadFromFirebase = async function() {
+        if (!currentUser) return null;
         try {
-          const snap = await getDoc(doc(db, 'dj-progress', userId));
-          return snap.exists() ? snap.data().state : {};
+          const snap = await getDoc(doc(db, 'dj-progress', currentUser.uid));
+          return snap.exists() ? (snap.data().state || {}) : {};
         } catch (e) {
           console.error('Firebase load failed:', e);
           return null;
         }
       };
 
-      // Real-time sync på tværs af browsere/enheder
-      onSnapshot(doc(db, 'dj-progress', userId), (snap) => {
-        if (snap.exists() && snap.metadata.hasPendingWrites === false) {
-          const state = snap.data().state || {};
-          window._applyState(state);
-        }
-      });
+      window._useFirebase = () => useFirebase;
 
     } catch (e) {
       console.error('Firebase init failed:', e);
-      useFirebase = false;
+      loginOverlay.classList.add('hidden');
       syncDot.classList.add('local');
-      syncText.textContent = 'Lokal (Firebase fejlede)';
+      syncText.textContent = 'Lokal (init fejlede)';
+      window._useFirebase = () => false;
     }
-  } else {
-    syncDot.classList.add('local');
-    syncText.textContent = 'Lokal (Firebase ikke konfigureret)';
   }
-
-  window._useFirebase = () => useFirebase;
 </script>
 
 <script>
@@ -1081,6 +1345,9 @@ const firebaseConfig = {
     });
   }
 
+  // Eksporter loadProgress så Firebase-scriptet kan kalde det når user er klar
+  window._loadProgress = loadProgress;
+
   document.addEventListener('DOMContentLoaded', async () => {
     document.querySelectorAll('.task').forEach(task => {
       const checkbox = task.querySelector('input[type="checkbox"]');
@@ -1101,10 +1368,14 @@ const firebaseConfig = {
       });
     });
 
-    // Vent på at Firebase har haft tid til at initialisere
-    setTimeout(async () => {
-      await loadProgress();
-    }, 500);
+    // Load localStorage-state med det samme (som fallback / hurtigt view)
+    // Firebase-scriptet overskriver med cloud-state når user er logget ind
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        applyState(JSON.parse(saved));
+      }
+    } catch(e) {}
   });
 
   async function resetProgress() {
